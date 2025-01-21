@@ -20,10 +20,10 @@ class Merchant < ApplicationRecord
   end
 
   def coupon_count
-    coupons.count
+    coupons.where(active: true).count
   end
 
-  def invoice_coupon_count
+  def invoice_with_coupon_count
     invoices.joins(:coupon).count
   end
 

@@ -9,11 +9,10 @@ class Api::V1::MerchantsController < ApplicationController
       merchants = Merchant.filter_by_status(params[:status])
     end
 
-    include_count = params[:count].present? && params[:count] == "true"
     include_coupon_count = params[:coupon_count].present? && params[:coupon_count] == "true"
-    include_invoice_coupon_count = params[:invoice_coupon_count].present? && params[:invoice_coupon_count] == "true"
+    include_invoice_coupon_count = params[:coupon_invoices_count].present? && params[:coupon_invoices_count] == "true"
     
-    render json: MerchantSerializer.new(merchants, { params: { count: include_count, coupon_count: include_coupon_count, invoice_coupon_count: include_invoice_coupon_count }})
+    render json: MerchantSerializer.new(merchants, { params: { coupon_count: include_coupon_count, invoice_coupon_count: include_invoice_coupon_count }})
   end
 
   def show
