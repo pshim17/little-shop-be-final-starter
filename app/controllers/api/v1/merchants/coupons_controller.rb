@@ -23,19 +23,15 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     render json: coupon.serialized_with_counter
   end
 
-  def create
+   def create
     merchant = Merchant.find(params[:merchant_id])
 
     if Coupon.active_coupon_limit(merchant)
       render json: ErrorSerializer.format_errors(["This merchant already has 5 active coupons"]), status: :too_many_requests
       return
     else
-      begin
-        coupon = merchant.coupons.create!(coupon_params)
-        render json: CouponSerializer.new(coupon), status: :created
-      rescue ActiveRecord::RecordInvalid => error
-        render json: ErrorSerializer.format_errors((error.message)), status: :unprocessable_entity
-      end
+      coupon = merchant.coupons.create!(coupon_params)
+      render json: CouponSerializer.new(coupon), status: :created
     end
   end
 
