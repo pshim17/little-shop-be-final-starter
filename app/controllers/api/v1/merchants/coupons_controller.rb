@@ -1,4 +1,7 @@
 class Api::V1::Merchants::CouponsController < ApplicationController  
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+  rescue_from ActiveRecord::RecordInvalid, with: :record_invalid
+
   def index
     merchant = Merchant.find_by(id: params[:merchant_id])
 
@@ -23,7 +26,7 @@ class Api::V1::Merchants::CouponsController < ApplicationController
     render json: coupon.serialized_with_counter
   end
 
-   def create
+  def create
     merchant = Merchant.find(params[:merchant_id])
     if Coupon.active_coupon_limit(merchant)
       render json: ErrorSerializer.format_errors(["This merchant already has 5 active coupons"]), status: :too_many_requests
@@ -59,5 +62,13 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
   def coupon_params
     params.require(:coupon).permit(:name, :code, :discount, :discount_type, :active, :merchant_id)
+  end
+
+  def record_not_found
+    render json: { error: 'Record not found' }, status: :not_found
+  end
+
+  def record_invalid(exception)
+    render json: { error: exception.record.errors.full_messages }, status: :unprocessable_entity
   end
 end
