@@ -25,7 +25,6 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
    def create
     merchant = Merchant.find(params[:merchant_id])
-
     if Coupon.active_coupon_limit(merchant)
       render json: ErrorSerializer.format_errors(["This merchant already has 5 active coupons"]), status: :too_many_requests
       return
@@ -37,12 +36,16 @@ class Api::V1::Merchants::CouponsController < ApplicationController
 
   def update
     coupon = Coupon.find(params[:id])
-    
-    if coupon_params[:active] == "false"
-      if Coupon.packaged_invoices.exists?(id: coupon.id)
-        render json: { error: "This coupon has a pending invoice therefore cannot be activated" }, status: :unprocessable_entity
-        return
-      end
+    merchant = Merchant.find(params[:merchant_id])
+
+    if coupon_params[:active].to_s == "true" && Coupon.active_coupon_limit(merchant)
+      render json: ErrorSerializer.format_errors(["This merchant already has 5 active coupons"]), status: :too_many_requests
+      return
+    end
+
+    if coupon_params[:active].to_s == "false" && Coupon.packaged_invoices.exists?(id: coupon.id)
+      render json: { error: "This coupon has a pending invoice therefore cannot be activated" }, status: :unprocessable_entity
+      return
     end
     
     if coupon.update(coupon_params)
